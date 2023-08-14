@@ -37,7 +37,7 @@ executor.submit(get_new_data_interval)
 def layout_home():
     get_new_data()
     return html.Div([
-        "Hello Vyn World!",
+        "Hello Vyn World! (beta 1.0)",
         SPACE,
         "Please give as many descriptors you would like for us to recommend you a wine.",
         SPACE,
