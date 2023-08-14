@@ -42,10 +42,14 @@ class Recommender():
         print("get_data_object")
         return self.data
 
-    def run_recommender(self, descriptors_trial):
+    def run_recommender(self, descriptors_trial_raw):
         print("run_recommender")
         # Words Saruul really wanted to use
         # descriptors_trial = ['aesthetic', 'acidic', 'lively', 'tasty', 'champagne', 'victorian']
+        def clean_text(text):
+            return text.lower()
+        
+        descriptors_trial = [clean_text(text) for text in descriptors_trial_raw]
 
         wine_descriptors = self.find_closest_wine_descriptors(descriptors_trial)
 

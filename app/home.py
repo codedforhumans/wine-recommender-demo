@@ -37,7 +37,7 @@ executor.submit(get_new_data_interval)
 def layout_home():
     get_new_data()
     return html.Div([
-        "Hello Vyn World! (beta 1.0)",
+        "Hello Vyn World!",
         SPACE,
         "Please give as many descriptors you would like for us to recommend you a wine.",
         SPACE,
@@ -52,11 +52,10 @@ def layout_home():
 
 @app.callback(
     Output("result-div", "children"),
-    Input("pre-text", "children"),
+    Input("pre-output", "children"),
     Input("input_1", "value"),
     Input("input_2", "value"),
-    Input("input_3", "value"),
-    # prevent_initial_call=True
+    Input("input_3", "value")
 )
 def result_div(pre_output, input_1, input_2, input_3):
     if pre_output is not None:
@@ -71,9 +70,10 @@ def result_div(pre_output, input_1, input_2, input_3):
     else:
         return None
 
+
 @app.callback(
     Output("button-div", "children"),
-    Input("topbar-div", "children")
+    Input("content-div", "children")
 )
 def button_div(button_div):
     layout = html.Div(
@@ -84,7 +84,7 @@ def button_div(button_div):
 
 @app.callback(
     Output("inputs", "children"),
-    Input("topbar-div", "children")
+    Input("content-div", "children")
 )
 def input_layout(content):
     layout = html.Div(
@@ -105,7 +105,6 @@ def input_layout(content):
     Input("input_2", "value"),
     Input("input_3", "value"),
     Input("get-recommendation", "n_clicks")
-    # prevent_initial_call=True
 )
 def update_output(input_1, input_2, input_3, n_click):
     print(n_click)
@@ -123,7 +122,7 @@ def update_output(input_1, input_2, input_3, n_click):
         else:
             input_3_show = input_3
 
-        return html.Div("Getting wine recommendations for the following: {} {} {}".format(input_1_show, input_2_show, input_3_show), id="pre-text")
+        return html.Div("Getting wine recommendations for the following: {} {} {}".format(input_1_show, input_2_show, input_3_show))
     else:
         return None
 
