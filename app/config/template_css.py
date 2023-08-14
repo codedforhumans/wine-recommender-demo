@@ -34,6 +34,18 @@ TITLE = {
     "height": "100%"
 }
 
+HEADER = {
+    "vertical-align": "center",
+    "margin-right": "20px",
+    "height": "100%"
+}
+
+HEADER_LOGO = {
+    'height':'30%',
+    'width':'30%',
+    "vertical-align": "center",
+}
+
 TOPBAR = {
     "display": "flex",
     # "flex-wrap": "wrap",

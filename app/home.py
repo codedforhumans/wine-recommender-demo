@@ -34,6 +34,10 @@ def get_new_data_interval():
 executor = ThreadPoolExecutor(max_workers = 1)
 executor.submit(get_new_data_interval)
 
+def layout_home_sleep():
+    return html.Div("Layout Home Sleeping")
+
+
 def layout_home():
     get_new_data()
     return html.Div([

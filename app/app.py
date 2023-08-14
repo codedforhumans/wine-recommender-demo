@@ -38,7 +38,7 @@ if len(os.listdir("app/data")) == 0:
 from config.template_functions import tabs_layout
 import config.template_css as style
 from about import layout_about
-from home import layout_home
+from home import layout_home, layout_home_sleep
 
 from dash_init import app
 
@@ -49,10 +49,16 @@ from dash_init import app
 def content(tab):
     if tab == "Home":
         return layout_home()
+        # return layout_home_sleep()
     elif tab == "About":
         return layout_about()
 
 title = html.P("Vyn", style=style.TITLE)
+# title = html.H1("Vyn")
+
+# image_path = 'assets/logos/vyn_logo_large.jpeg'
+# header = html.Div(html.Img(src=image_path, style=style.HEADER_LOGO), style=style.HEADER)
+
 tabs = html.Div([tabs_layout(["Home", "About"])])
 
 def layout():
@@ -62,6 +68,7 @@ def layout():
             html.Div([tabs], id="topbar-div", style=style.TOPBAR_MENU),  # Topbar (Tabs, Title, ...)
             html.Div("Loading Content...", id="content-div", style=style.CONTENT),  # Content (Loads in body() function)
             html.Div(id="data-div", style={"display": "none"}),  # Invisible Div to store data in json string format
+            # html.Link(href='/assets/style.css', rel='stylesheet'),
         ], id="body", style=style.BODY),
     ], style={"width": "100vw", "height": "100vh", "align":"center", "justify-content":"center"})
 

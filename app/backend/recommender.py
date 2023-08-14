@@ -47,7 +47,10 @@ class Recommender():
         # Words Saruul really wanted to use
         # descriptors_trial = ['aesthetic', 'acidic', 'lively', 'tasty', 'champagne', 'victorian']
         def clean_text(text):
-            return text.lower()
+            if text is not None:
+                return text.lower()
+            else:
+                return text
         
         descriptors_trial = [clean_text(text) for text in descriptors_trial_raw]
 
