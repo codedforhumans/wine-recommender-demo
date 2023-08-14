@@ -1,4 +1,4 @@
-from dash import Dash, dcc, html, Input, Output, ctx
+from dash import Dash, dcc, html, Input, Output, ctx, State
 import plotly.io as pio
 import time
 import dash_bootstrap_components as dbc
@@ -45,20 +45,21 @@ def layout_home():
         SPACE,
         html.Div(id="button-div"),
         SPACE,
-        html.Div(id="output"),
+        html.Div(id="pre-output"),
         SPACE,
         html.Div(id="result-div")]
                     ,style=style.HOME)
 
 @app.callback(
     Output("result-div", "children"),
-    Input("output", "children"),
+    Input("pre-text", "children"),
     Input("input_1", "value"),
     Input("input_2", "value"),
-    Input("input_3", "value")
+    Input("input_3", "value"),
+    # prevent_initial_call=True
 )
-def result_div(output, input_1, input_2, input_3):
-    if output is not None:
+def result_div(pre_output, input_1, input_2, input_3):
+    if pre_output is not None:
         layout_body = []
         result_lst = RECOMMEND_GLOBAL.run_recommender([input_1, input_2, input_3])
         for suggestion in result_lst:
@@ -72,17 +73,18 @@ def result_div(output, input_1, input_2, input_3):
 
 @app.callback(
     Output("button-div", "children"),
-    Input("content-div", "children")
+    Input("topbar-div", "children")
 )
 def button_div(button_div):
-    layout = html.Div(dbc.Button("Get Recommendations", id="get-recommendation", size="sm", color="primary", className="me-1"),
+    layout = html.Div(
+        [dbc.Button("Get Recommendations", id="get-recommendation", size="sm", color="primary", className="me-1")]
     )
     return layout
 
 
 @app.callback(
     Output("inputs", "children"),
-    Input("content-div", "children")
+    Input("topbar-div", "children")
 )
 def input_layout(content):
     layout = html.Div(
@@ -98,13 +100,15 @@ def input_layout(content):
     return layout
 
 @app.callback(
-    Output("output", "children"),
+    Output("pre-output", "children"),
     Input("input_1", "value"),
     Input("input_2", "value"),
     Input("input_3", "value"),
     Input("get-recommendation", "n_clicks")
+    # prevent_initial_call=True
 )
 def update_output(input_1, input_2, input_3, n_click):
+    print(n_click)
     if n_click is not None:
         if input_1 == None:
             input_1_show = ""
@@ -119,7 +123,7 @@ def update_output(input_1, input_2, input_3, n_click):
         else:
             input_3_show = input_3
 
-        return html.Div("Getting wine recommendations for the following: {} {} {}".format(input_1_show, input_2_show, input_3_show))
+        return html.Div("Getting wine recommendations for the following: {} {} {}".format(input_1_show, input_2_show, input_3_show), id="pre-text")
     else:
         return None
 
