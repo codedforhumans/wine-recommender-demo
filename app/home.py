@@ -22,8 +22,12 @@ SPACE_INPUTS = html.Div(style={"padding-bottom":"10px"})
 SPACE_SMALL = html.Div(style={"padding":"5px"})
 
 def get_new_data():
-    global RECOMMEND_GLOBAL
+    global RECOMMEND_GLOBAL, COUNTRIES, VARIETIES, any_variety, any_country
     RECOMMEND_GLOBAL = recommender.Recommender()
+    COUNTRIES = RECOMMEND_GLOBAL.get_countries_min_count()
+    VARIETIES = RECOMMEND_GLOBAL.get_varieties_min_count()
+    any_variety = "Any Variety"
+    any_country = "Any Country"
 
 UPDATE_INTERVAL = 3600
 
@@ -43,6 +47,10 @@ def layout_home():
     return html.Div([
         "Hello Vyn World!",
         SPACE,
+        html.Div(id="variety-div"),
+        SPACE,
+        html.Div(id="country-div"),
+        SPACE,
         "Please give as many descriptors you would like for us to recommend you a wine.",
         SPACE,
         html.Div(id="inputs"),
@@ -54,17 +62,62 @@ def layout_home():
         html.Div(id="result-div")]
                     ,style=style.HOME)
 
+
+@app.callback(
+    Output("variety-div", "children"),
+    Input("content-div", "children"),
+    # Input("country-dropdown", "value")
+)
+def variety_div(null): # country
+    result = [html.Div("Choose a Variety")]
+    variety = list(VARIETIES.keys())
+    # if country != any_country:
+    #     variety = VARIETIES[country]
+    dropdown_choices = [any_variety] + variety
+    dropdown = dcc.Dropdown(dropdown_choices, value = any_variety, id='variety-dropdown')
+    result += [dropdown]
+
+    return result
+
+
+@app.callback(
+    Output("country-div", "children"),
+    Input("content-div", "children"),
+    Input("variety-dropdown", "value")
+)
+def country_div(null, variety):
+    result = [html.Div("Choose a Country")]
+    country = list(COUNTRIES.keys())
+    if variety is not None:
+        print("variety is not None:")
+        if variety != any_variety:
+            print("variety != any_variety")
+            country = list(VARIETIES[variety])
+    dropdown_choices = [any_country] + country
+    dropdown = dcc.Dropdown(dropdown_choices, value = any_country, id='country-dropdown')
+    result += [dropdown]
+
+    return result
+
+
 @app.callback(
     Output("result-div", "children"),
     Input("pre-output", "children"),
     Input("input_1", "value"),
     Input("input_2", "value"),
-    Input("input_3", "value")
+    Input("input_3", "value"),
+    Input("variety-dropdown", "value"),
+    Input("country-dropdown", "value")
 )
-def result_div(pre_output, input_1, input_2, input_3):
+def result_div(pre_output, input_1, input_2, input_3, variety, country):
     if pre_output is not None:
         layout_body = []
-        result_lst = RECOMMEND_GLOBAL.run_recommender([input_1, input_2, input_3])
+        features = {}
+        if variety != any_variety:
+            features["Variety"] = variety
+        if country != any_country:
+            features["Country"] = country
+        result_lst = RECOMMEND_GLOBAL.run_recommender([input_1, input_2, input_3], features = features)
         for suggestion in result_lst:
             layout_body += [html.Div([
                 html.Div(suggestion), 
@@ -92,8 +145,9 @@ def button_div(button_div):
 )
 def input_layout(content):
     layout = html.Div(
-        [
-            SPACE_SMALL,
+        [   SPACE_SMALL,
+            # html.Div(id="geo-div-dev"),
+            # SPACE_SMALL,
             dcc.Input(id="input_1", type="text", placeholder="descriptor 1", style={'marginRight':'10px'}),
             SPACE_INPUTS,
             dcc.Input(id="input_2", type="text", placeholder="descriptor 2", style={'marginRight':'10px'}),
@@ -104,13 +158,22 @@ def input_layout(content):
     return layout
 
 @app.callback(
+    Output("geo-div-dev", "children"),
+    Input("content-div", "children")
+)
+def get_geo_div(content):
+    return html.Div("Returning Geo Div")
+
+@app.callback(
     Output("pre-output", "children"),
     Input("input_1", "value"),
     Input("input_2", "value"),
     Input("input_3", "value"),
+    Input("variety-dropdown", "value"),
+    Input("country-dropdown", "value"),
     Input("get-recommendation", "n_clicks")
 )
-def update_output(input_1, input_2, input_3, n_click):
+def update_output(input_1, input_2, input_3, variety, country, n_click):
     print(n_click)
     if n_click is not None:
         if input_1 == None:
@@ -126,7 +189,7 @@ def update_output(input_1, input_2, input_3, n_click):
         else:
             input_3_show = input_3
 
-        return html.Div("Getting wine recommendations for the following: {} {} {}".format(input_1_show, input_2_show, input_3_show))
+        return html.Div("Getting wine recommendations for {} in {} with the following: {} {} {}".format(variety, country, input_1_show, input_2_show, input_3_show))
     else:
         return None
 

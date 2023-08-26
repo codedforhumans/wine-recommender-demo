@@ -251,6 +251,12 @@ class Database:
         start_time = time.time()
         wine_dataframe_min = self.add_wine_review_vectors(self.wine_dataframe)
         wine_reviews_mincount = wine_dataframe_min.loc[wine_dataframe_min['descriptor_count'] > min_count]
+        
+        # Stripping whitespace
+        str_cols = ["Variety", "Country"]
+        for col in str_cols:
+            wine_reviews_mincount[col] = wine_reviews_mincount[col].str.strip()
+        
         wine_reviews_mincount = wine_reviews_mincount.reset_index(drop=True)
         print("--- %s seconds ---" % (time.time() - start_time))
         return wine_reviews_mincount

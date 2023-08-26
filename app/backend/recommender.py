@@ -42,7 +42,7 @@ class Recommender():
         print("get_data_object")
         return self.data
 
-    def run_recommender(self, descriptors_trial_raw):
+    def run_recommender(self, descriptors_trial_raw, features: dict = {}):
         print("run_recommender")
         # Words Saruul really wanted to use
         # descriptors_trial = ['aesthetic', 'acidic', 'lively', 'tasty', 'champagne', 'victorian']
@@ -56,7 +56,7 @@ class Recommender():
 
         wine_descriptors = self.find_closest_wine_descriptors(descriptors_trial)
 
-        result = self.descriptors_to_best_match_wines(list_of_descriptors=wine_descriptors, number_of_suggestions=5)
+        result = self.descriptors_to_best_match_wines(list_of_descriptors=wine_descriptors, number_of_suggestions = 5, features = features)
         return result
 
     def find_closest_wine_descriptors(self, word_list, wine_descriptor_list = database.get_level_3_mapping()):
@@ -77,7 +77,7 @@ class Recommender():
 
         return closest_word
     
-    def descriptors_to_best_match_wines(self, list_of_descriptors, number_of_suggestions=10):
+    def descriptors_to_best_match_wines(self, list_of_descriptors, number_of_suggestions=10, features: dict = {}):
         print("descriptors_to_best_match_wines")
         weighted_review_terms = []
         for term in list_of_descriptors:
@@ -92,15 +92,68 @@ class Recommender():
             weighted_word_vector = tfidf_weighting * word_vector
             weighted_review_terms.append(weighted_word_vector)
         review_vector = sum(weighted_review_terms)
+
+        # Helpers
+        def feature_filter(feature_name, feature_descriptor, wine_reviews_mincount_df):
+            """
+            Returns DataFrame that subsets wine_reviews_mincount_df into the correct feature_descriptor for the feature_name
+            i.e. feature_filter("Variety", "Riesling", wine_reviews_mincount)
+            """
+            if feature_name not in wine_reviews_mincount_df.columns:
+                print("Found no feature: " + str(feature_name))
+                return wine_reviews_mincount_df
+            else:
+                return wine_reviews_mincount_df.loc[wine_reviews_mincount_df[feature_name] == feature_descriptor]
+
+            
+        def get_feature_matching_indices(search_index, dataframe):
+            """
+            Returns a list of indices in search_index that are available in dataframe's indices
+            """
+            
+            indices = dataframe.index
+            return [ind for ind in search_index if ind in indices]
+
+
+        def get_feature_unmatching_indices(search_index, dataframe):
+            """
+            Returns a list of indices NOT in search_index that are available in dataframe's indices - for edge cases when asked variety is limited in result count
+            """
+            indices = dataframe.index
+            return [ind for ind in search_index if ind not in indices]
+
+        def get_filtered_suggestions(features: dict, search_index, suggestion_count):
+            # Filter by each feature_name
+            curr_df = self.wine_review_min_count
+
+            if len(features) > 0:
+                for feature_name, feature_descriptor in features.items():
+                    curr_df = feature_filter(feature_name, feature_descriptor, curr_df)
+                
+            # Find indices available in the curr_df indices
+            avail = get_feature_matching_indices(search_index, curr_df)
+            
+            # Find indices NOT available in the curr_df indices
+            no_avail = get_feature_unmatching_indices(search_index, curr_df)
+            
+            result_indices = avail
+            if len(result_indices) < suggestion_count:
+                extra = suggestion_count - len(result_indices)
+                result_indices = avail + no_avail[:extra]
+                return result_indices
+            else:
+                return avail[:suggestion_count]
         
-        distance, indice = self.model_knn.kneighbors(review_vector, n_neighbors=number_of_suggestions+1)
-        distance_list = distance[0].tolist()[1:]
-        indice_list = indice[0].tolist()[1:]
+        distance, indice = self.model_knn.kneighbors(review_vector, n_neighbors = 15041) # # 15041 is the limit of n_samples (number_of_suggestions + 1)
+        # distance_list = distance[0].tolist()[1:]
+        indice_list_raw = indice[0].tolist()[1:]
+
+        indice_list = get_filtered_suggestions(features, indice_list_raw, number_of_suggestions)
 
         result = []
         n = 1
         
-        for d, i in zip(distance_list, indice_list):
+        for i in indice_list:
             wine_name = self.wine_review_min_count['Name'][i]
             wine_descriptors = self.wine_review_min_count['normalized_descriptors'][i]
             string_one = " ".join(['Suggestion', str(n), ':', wine_name]) # , 'with a cosine distance of', "{:.3f}".format(d)
@@ -110,6 +163,17 @@ class Recommender():
             result.append(string)
             n+=1
         return result
+    
+    def get_countries_min_count(self, min_count = 5):
+        # all_countries = list(self.wine_review_min_count['Country'].value_counts().loc[lambda x: x > min_count].reset_index()['Country'])
+        country_to_variety_dict = self.wine_review_min_count[["Country", "Variety"]].groupby('Country')["Variety"].unique().to_dict()
+        return country_to_variety_dict
+
+    
+    def get_varieties_min_count(self, min_count = 5):
+        # return list(self.wine_review_min_count['Variety'].value_counts().loc[lambda x: x > min_count].reset_index()['Variety'])
+        variety_to_country_dict = self.wine_review_min_count[["Country", "Variety"]].groupby('Variety')["Country"].unique().to_dict()
+        return variety_to_country_dict
     
 
 class Model():

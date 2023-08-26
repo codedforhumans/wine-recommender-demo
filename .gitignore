@@ -161,3 +161,7 @@ cython_debug/
 
 # Data directory
 data/
+.DS_Store
+.DS_Store
+app/backend/.DS_Store
+app/backend/creating_wine_review_embeddings.ipynb

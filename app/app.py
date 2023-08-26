@@ -39,6 +39,7 @@ from config.template_functions import tabs_layout
 import config.template_css as style
 from about import layout_about
 from home import layout_home, layout_home_sleep
+# from new_feature import layout_new
 
 from dash_init import app
 
@@ -49,6 +50,7 @@ from dash_init import app
 def content(tab):
     if tab == "Home":
         return layout_home()
+        # return layout_new()
         # return layout_home_sleep()
     elif tab == "About":
         return layout_about()
@@ -77,4 +79,4 @@ app.layout = layout()
 server = app.server
 
 if __name__ == '__main__':
-    app.run_server(host="0.0.0.0", port=8050, debug=False)
+    app.run_server(host="0.0.0.0", port=8050, debug=True)
