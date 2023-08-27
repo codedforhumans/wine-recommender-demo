@@ -56,7 +56,16 @@ class Recommender():
 
         default_wine_descriptor = "rich"
 
-        features, used_descriptors = self.find_features(descriptors_trial_raw)
+        def descriptor_str_to_list(raw_string):
+            separated = re.split('[^a-zA-Z]\W', raw_string)
+            strip_white = [phrase.strip() for phrase in separated]
+            no_empty_str = list(filter(None, strip_white))
+            result = no_empty_str
+            return no_empty_str
+
+        descriptor_list = descriptor_str_to_list(descriptors_trial_raw)
+
+        features, used_descriptors = self.find_features(descriptor_list)
 
         descriptors_left = list(set(descriptors_trial_raw) - set(used_descriptors))
         pure_descriptors = [self.clean_text(text) for text in descriptors_left]
@@ -76,11 +85,13 @@ class Recommender():
 
         varieties = self.get_varieties_min_count()
         countries = self.get_countries_min_count()
-        countries_found = list(set(descriptors) & set(countries))
+        # countries_found = list(set(descriptors) & set(countries))
+        countries_case_insensitive = [country.lower() for country in countries]
+        countries_found = [phrase for phrase in descriptors if phrase.lower() in countries_case_insensitive]
         if len(countries_found) != 0:
             features["Country"] = countries_found
 
-        descriptors_no_country = list(set(descriptors) - set(countries))
+        descriptors_no_country = list(set(descriptors) - set(countries_found))
         # used_strings = []
         
         for string in descriptors_no_country:
@@ -186,7 +197,15 @@ class Recommender():
         # distance_list = distance[0].tolist()[1:]
         indice_list_raw = indice[0].tolist()[1:]
 
-        indice_list = get_filtered_suggestions(features, indice_list_raw, number_of_suggestions)
+
+        def clean_features(features: dict):
+            result_dict = features
+            if 'Country' in result_dict.keys():
+                cleaned_countries = [country.title() if not country.isupper() else country for country in result_dict['Country']]
+                result_dict['Country'] = cleaned_countries
+            return result_dict
+
+        indice_list = get_filtered_suggestions(clean_features(features), indice_list_raw, number_of_suggestions)
 
         result = []
         n = 1
