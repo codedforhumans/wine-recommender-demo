@@ -2,7 +2,7 @@ import os
 import string
 from operator import itemgetter
 import time
-from functools import lru_cache
+# from functools import lru_cache
 
 import numpy as np
 import pandas as pd
@@ -246,7 +246,7 @@ class Database:
         print("--- %s seconds ---" % (time.time() - start_time))
         return result
     
-    def get_wine_review_min_count(self, min_count = 5):
+    def get_wine_review_min_count(self, min_count = 1):
         print("get_wine_review_min_count")
         start_time = time.time()
         wine_dataframe_min = self.add_wine_review_vectors(self.wine_dataframe)
