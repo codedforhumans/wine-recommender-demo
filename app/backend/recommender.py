@@ -20,8 +20,8 @@ from sklearn.neighbors import NearestNeighbors
 import gensim
 from gensim.models import KeyedVectors
 
-# from backend.database import Database
-from database import Database
+from backend.database import Database
+# from database import Database
 
 
 database = Database()
