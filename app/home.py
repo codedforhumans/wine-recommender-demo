@@ -51,7 +51,7 @@ def layout_home():
         # SPACE,
         # html.Div(id="country-div"),
         SPACE,
-        "Please give as many descriptors you would like for us to recommend you a wine.",
+        "V2.0. Please give as many descriptors you would like for us to recommend you a wine.",
         SPACE,
         html.Div(id="inputs"),
         SPACE,
