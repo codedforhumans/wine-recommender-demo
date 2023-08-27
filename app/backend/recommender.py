@@ -20,8 +20,8 @@ from sklearn.neighbors import NearestNeighbors
 import gensim
 from gensim.models import KeyedVectors
 
-from backend.database import Database
-# from database import Database
+# from backend.database import Database
+from database import Database
 
 
 database = Database()
@@ -76,7 +76,9 @@ class Recommender():
 
         varieties = self.get_varieties_min_count()
         countries = self.get_countries_min_count()
-        features["Country"] = list(set(descriptors) & set(countries))
+        countries_found = list(set(descriptors) & set(countries))
+        if len(countries_found) != 0:
+            features["Country"] = countries_found
 
         descriptors_no_country = list(set(descriptors) - set(countries))
         # used_strings = []
@@ -89,7 +91,11 @@ class Recommender():
                     features["Variety"] = variety_temp
                 else:
                     features["Variety"] += variety_temp
-        used_strings_unique = list(set(features["Variety"] + features["Country"]))
+        used_strings_unique = []
+        for key in features.keys():
+            used_strings_unique += features[key]
+        # Make sure no duplicate value
+        used_strings_unique = list(set(used_strings_unique))
         return (features, used_strings_unique)
 
 
